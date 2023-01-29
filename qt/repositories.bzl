@@ -29,7 +29,7 @@ def rules_qt_dependencies(qt_version):
     qt_version_major, qt_version_minor, _ = qt_version.split(".")
     http_archive(
         name = "qt",
-        build_file = "//:third_party/qt/BUILD.qt.bazel",
+        build_file = Label("//third_party/qt:BUILD.qt.bazel"),
         sha256 = QT_VERSIONS[qt_version],
         strip_prefix = "qt-everywhere-src-{}".format(qt_version),
         url = "https://download.qt.io/official_releases/qt/{major}.{minor}/{full}/single/qt-everywhere-src-{full}.tar.xz".format(major = qt_version_major, minor = qt_version_minor, full = qt_version),

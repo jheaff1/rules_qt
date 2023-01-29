@@ -244,6 +244,11 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"])
+)
+
 TOOL_PREFIX = "source $$EXT_BUILD_ROOT$$/$(location :cxx_var) && unset CFLAGS CXXFLAGS ASMFLAGS &&"
 
 # have to add "link_libraries(stdc++ m)" to top of top level CMakeLists. wrap "if compiler is clang or gcc" around it
@@ -260,7 +265,7 @@ cmake(
     ],
     env = {
         "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(PERL)):$$(dirname $$EXT_BUILD_ROOT$$/$(NODE_PATH)):$$(dirname $$EXT_BUILD_ROOT$$/$(location @python2//:python2_exe)):$$(dirname $$EXT_BUILD_ROOT$$/$(location @gperf//:gperf_exe)):$$(dirname $$EXT_BUILD_ROOT$$/$(location :flex)):$$(dirname $$EXT_BUILD_ROOT$$/$(location :bison)):$$PATH$$",
-    }
+    },
     # Need to remove "-O2" from command line otherwise cmake step fails. As rules_foreign_cc will set CMAKE_BUILD_TYPE to Release, optimisation will be enabled that way
     features = [
         # "-default_link_flags",
@@ -274,7 +279,7 @@ cmake(
     generate_crosstool_file = False,
 
    
-    lib_source = "@qt//:all_srcs",
+    lib_source = ":all_srcs",
     out_binaries = BINARIES,
     postfix_script = "cp -p $$INSTALLDIR$$/libexec/* $$INSTALLDIR$$/bin",
     # The Qt CMake build attempts to archive a file, which fails if the file is a symlink (i.e inside the bazel sandbox where all files are symlinks). As such, this target cannot be sandboxed
