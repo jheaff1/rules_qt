@@ -8,15 +8,10 @@ load(":internal_deps.bzl", "rules_qt_internal_deps")
 # Fetch deps needed only locally for development
 rules_qt_internal_deps()
 
-load("//qt:repositories.bzl", "qt_register_toolchains", "rules_qt_dependencies")
+load("//qt:repositories.bzl", "rules_qt_dependencies")
 
 # Fetch dependencies which users need as well
 rules_qt_dependencies()
-
-qt_register_toolchains(
-    name = "qt1_14",
-    qt_version = "1.14.2",
-)
 
 # For running our own unit tests
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
