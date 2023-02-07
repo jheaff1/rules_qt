@@ -42,3 +42,9 @@ filegroup(
     output_group = "gen_dir",
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "bison_exe",
+    srcs = [":bison"],
+    output_group = "bison",
+)
