@@ -1,0 +1,4 @@
+exports_files([
+    "ports/gperf/CMakeLists.txt",
+    "ports/gperf/config.h.in",
+])

@@ -1,0 +1,30 @@
+# TODO this depends on m4
+
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+cmake(
+    name = "gperf",
+    lib_source = ":all_srcs",
+    generate_args = ["-GNinja"],
+    out_binaries = select({
+        "@platforms//os:windows": ["gperf.exe"],
+        "//conditions:default": ["gperf"],
+    }),
+)
+
+filegroup(
+    name = "gperf_exe",
+    srcs = [":gperf"],
+    # Extract gperf executable using output_group set by rules_foreign_cc
+    output_group = select({
+        "@platforms//os:windows": "gperf.exe",
+        "//conditions:default": "gperf",
+    }),
+)

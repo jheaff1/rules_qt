@@ -7,6 +7,8 @@ See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//qt/private:versions.bzl", "QT_VERSIONS")
+load("//qt/private:http_archive.bzl", custom_http_archive = "http_archive")
+load("//qt/private:host_python2.bzl", "host_python2")
 
 # WARNING: any changes in this function may be BREAKING CHANGES for users
 # because we'll fetch a dependency which may be different from one that
@@ -27,7 +29,8 @@ def rules_qt_dependencies(qt_version):
     )
 
     qt_version_major, qt_version_minor, _ = qt_version.split(".")
-    http_archive(
+    maybe(
+        http_archive,
         name = "qt",
         build_file = Label("//third_party/qt:BUILD.qt.bazel"),
         sha256 = QT_VERSIONS[qt_version],
@@ -35,4 +38,107 @@ def rules_qt_dependencies(qt_version):
         url = "https://download.qt.io/official_releases/qt/{major}.{minor}/{full}/single/qt-everywhere-src-{full}.tar.xz".format(major = qt_version_major, minor = qt_version_minor, full = qt_version),
     )
 
-#https://download.qt.io/official_releases/qt/6.2/6.2.2/single/qt-everywhere-src-6.2.2.zip
+    maybe(
+        http_archive,
+        name = "rules_python",
+        sha256 = "a3a6e99f497be089f81ec082882e40246bfd435f52f4e82f37e89449b04573f6",
+        strip_prefix = "rules_python-0.10.2",
+        url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.10.2.tar.gz",
+    )
+
+    host_python2(name = "python2")
+
+    maybe(
+        http_archive,
+        name = "rules_perl",
+        sha256 = "5cefadbf2a49bf3421ede009f2c5a2c9836abae792620ed2ff99184133755325",
+        strip_prefix = "rules_perl-0.1.0",
+        urls = [
+            "https://github.com/bazelbuild/rules_perl/archive/refs/tags/0.1.0.tar.gz",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_foreign_cc",
+        sha256 = "2a4d07cd64b0719b39a7c12218a3e507672b82a97b98c6a89d38565894cf7c51",
+        strip_prefix = "rules_foreign_cc-0.9.0",
+        url = "https://github.com/bazelbuild/rules_foreign_cc/archive/refs/tags/0.9.0.tar.gz",
+    )
+
+    maybe(
+        http_archive,
+        name = "build_bazel_rules_nodejs",
+        sha256 = "c78216f5be5d451a42275b0b7dc809fb9347e2b04a68f68bad620a2b01f5c774",
+        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.5.2/rules_nodejs-5.5.2.tar.gz"],
+    )
+
+    maybe(
+        http_archive,
+        name = "vcpkg",
+        build_file = Label("//third_party/vcpkg:BUILD.vcpkg.bazel"),
+        sha256 = "099d473823bfa4c1b876ec5f99dc1f0d89da44f58557acff3eaee79335510086",
+        strip_prefix = "vcpkg-2022.06.16.1",
+        url = "https://github.com/microsoft/vcpkg/archive/refs/tags/2022.06.16.1.tar.gz",
+    )
+
+    maybe(
+        custom_http_archive,
+        name = "gperf",
+        additional_files = {
+            "@vcpkg//:ports/gperf/CMakeLists.txt": "ports/gperf",
+            "@vcpkg//:ports/gperf/config.h.in": "ports/gperf",
+        },
+        build_file = Label("//third_party/gperf:BUILD.gperf.bazel"),
+        # Patch injects files used by vcpkg to build gperf. The files are obtained from https://github.com/microsoft/vcpkg/tree/2022.06.16.1/ports/gperf
+        # patches = ["//third_party/gperf:gperf.patch"],
+        # According to http_archive documentation, any patch_args other than "-p" will force bazel to use command line tool "patch" rather than its java implementation.
+        # As the java implementation does not support creating new files via a patch, add an arbitrary arg so that the command linen tool is used instead
+        # patch_args = ["-s"],
+        sha256 = "588546b945bba4b70b6a3a616e80b4ab466e3f33024a352fc2198112cdbb3ae2",
+        strip_prefix = "gperf-3.1",
+        url = "http://ftp.gnu.org/pub/gnu/gperf/gperf-3.1.tar.gz",
+    )
+
+    maybe(
+        http_archive,
+        name = "bison",
+        build_file = Label("//third_party/bison:BUILD.bison.bazel"),
+        sha256 = "06c9e13bdf7eb24d4ceb6b59205a4f67c2c7e7213119644430fe82fbd14a0abb",
+        strip_prefix = "bison-3.8.2",
+        url = "https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz",
+    )
+
+    maybe(
+        http_archive,
+        name = "flex",
+        build_file = Label("//third_party/flex:BUILD.flex.bazel"),
+        sha256 = "e87aae032bf07c26f85ac0ed3250998c37621d95f8bd748b31f15b33c45ee995",
+        strip_prefix = "flex-2.6.4",
+        url = "https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz",
+    )
+
+    maybe(
+        http_archive,
+        name = "openssl",
+        build_file = Label("//third_party/openssl:BUILD.openssl.bazel"),
+        sha256 = "9384a2b0570dd80358841464677115df785edb941c71211f75076d72fe6b438f",
+        strip_prefix = "openssl-1.1.1o",
+        urls = [
+            "https://mirror.bazel.build/www.openssl.org/source/openssl-1.1.1o.tar.gz",
+            "https://www.openssl.org/source/openssl-1.1.1o.tar.gz",
+            "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1o.tar.gz",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "zlib",
+        build_file = Label("//third_party/zlib:BUILD.zlib.bazel"),
+        sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
+        strip_prefix = "zlib-1.2.11",
+        urls = [
+            "https://zlib.net/zlib-1.2.11.tar.gz",
+            "https://storage.googleapis.com/mirror.tensorflow.org/zlib.net/zlib-1.2.11.tar.gz",
+        ],
+    )

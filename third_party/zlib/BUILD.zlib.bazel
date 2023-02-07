@@ -1,0 +1,62 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake", "configure_make")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+)
+
+# For building on windows with "-c dbg", output is zlibstaticd.lib rather than zlibstatic.lib
+# To handle this, use config setting like below
+#config_setting(
+#    name = "debug_build",
+#    values = {
+#        "compilation_mode": "dbg",
+#    },
+#)
+#
+# then use "select", like
+
+# configure_make(
+#     name = "zlib",
+#     env = {"CFLAGS": "-fPIC"},
+#     configure_options = ["--static"],
+#     lib_source = ":all",
+#     out_static_libs = select({
+#         ":debug_build": "zlibstaticd.lib",
+#         "//conditions:default": "zlibstatic.lib"
+#     }),
+# )
+
+# may need to AND or OR conditions to say "windows + debug - zlibstaticd.lib" - https://docs.bazel.build/versions/main/configurable-attributes.html#and-chaining
+
+# configure_make(
+#     name = "zlib",
+#     configure_options = ["--static"],
+#     env = {"CFLAGS": "-fPIC"},
+#     lib_source = ":all",
+#     out_static_libs = [
+#         "libz.a",
+#     ],
+# )
+
+# perhaps have features=["-dbg"] to ensure it is never build for debug
+cmake(
+    name = "zlib",
+    cache_entries = select({
+        # Set to Linux rather than Android to prevent CMake from trying to automatically detect parameters for an Android build, which are already provided by the Android bazel toolchain
+        # also see https://github.com/bazelbuild/rules_foreign_cc/issues/289#issuecomment-1201314236
+        "@platforms//os:android": {"CMAKE_SYSTEM_NAME": "Linux"},
+        "//conditions:default": {},
+    }),
+    generate_args = select({
+        "@platforms//os:windows": ["-GNinja"],
+        "//conditions:default": [],
+    }),
+    lib_source = ":all_srcs",
+    out_static_libs = select({
+        "@platforms//os:windows": ["zlibstatic.lib"],
+        "//conditions:default": ["libz.a"],
+    }),
+)
