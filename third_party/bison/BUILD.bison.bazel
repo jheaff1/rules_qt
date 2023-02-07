@@ -1,4 +1,3 @@
-
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "configure_make")
 
 package(default_visibility = ["//visibility:public"])
@@ -11,14 +10,35 @@ filegroup(
     ),
 )
 
+# I tested and this builds for me on macOS and Linux, did not check Windows
 configure_make(
     name = "bison",
+    build_data = [
+        "@m4",
+    ],
+    env = select({
+        "@platforms//os:linux": {
+            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+        },
+        "@platforms//os:macos": {
+            "AR": "",
+            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+        },
+        "//conditions:default": {},
+    }),
     lib_source = ":all_srcs",
-    out_binaries = ["bison"],
+    out_binaries = [
+        "bison",
+        "yacc",
+    ],
+    # Bison depends on m4sugar.m4 in the "share" directory at runtime
+    out_data_dirs = ["share"],
+    out_static_libs = ["liby.a"],
 )
 
 filegroup(
-    name = "bison_exe",
+    name = "gen_dir",
     srcs = [":bison"],
-    output_group = "bison",
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
 )

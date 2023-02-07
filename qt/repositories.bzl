@@ -9,6 +9,8 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//qt/private:versions.bzl", "QT_VERSIONS")
 load("//qt/private:http_archive.bzl", custom_http_archive = "http_archive")
 load("//qt/private:host_python2.bzl", "host_python2")
+load("//third_party/autotools:repositories.bzl", "autotools_repositories")
+load("//third_party/xorg:repositories.bzl", "xorg_repositories")
 
 # WARNING: any changes in this function may be BREAKING CHANGES for users
 # because we'll fetch a dependency which may be different from one that
@@ -58,12 +60,20 @@ def rules_qt_dependencies(qt_version):
         ],
     )
 
+    # maybe(
+    #     http_archive,
+    #     name = "rules_foreign_cc",
+    #     sha256 = "2a4d07cd64b0719b39a7c12218a3e507672b82a97b98c6a89d38565894cf7c51",
+    #     strip_prefix = "rules_foreign_cc-0.9.0",
+    #     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/refs/tags/0.9.0.tar.gz",
+    # )
+
     maybe(
         http_archive,
         name = "rules_foreign_cc",
-        sha256 = "2a4d07cd64b0719b39a7c12218a3e507672b82a97b98c6a89d38565894cf7c51",
-        strip_prefix = "rules_foreign_cc-0.9.0",
-        url = "https://github.com/bazelbuild/rules_foreign_cc/archive/refs/tags/0.9.0.tar.gz",
+        sha256 = "0dd8a75428c52f4ed069c2aaec9b9666e5f6578e002d8ab85292cba3dc09a81f",
+        strip_prefix = "rules_foreign_cc-add_meson_support_tidy",
+        url = "https://github.com/jheaff1/rules_foreign_cc/archive/refs/heads/add_meson_support_tidy.zip",
     )
 
     maybe(
@@ -142,3 +152,82 @@ def rules_qt_dependencies(qt_version):
             "https://storage.googleapis.com/mirror.tensorflow.org/zlib.net/zlib-1.2.11.tar.gz",
         ],
     )
+
+    # TODO build mesa with llvm-pipe
+    maybe(
+        http_archive,
+        name = "mesa",
+        build_file = Label("//third_party/mesa:BUILD.mesa.bazel"),
+        patches = [
+            # This patch is required for meson to find the hermetic python interpreter
+            Label("//third_party/mesa:mesa.meson.build.patch"),
+            # The following patches are required so that dependencies are hermetically tracked by meson
+            Label("//third_party/mesa:mesa.src_loader_meson.build.patch"),
+            Label("//third_party/mesa:mesa.src_intel_vulkan_meson.build.patch"),
+            Label("//third_party/mesa:mesa.src_vulkan_util_meson.build.patch"),
+            Label("//third_party/mesa:mesa.src_gbm_meson.build.patch"),
+            Label("//third_party/mesa:mesa.src_gallium_frontends_dri_meson.build.patch"),
+            Label("//third_party/mesa:mesa.src_gallium_targets_dri_meson.build.patch"),
+            Label("//third_party/mesa:mesa.src_egl_meson.build.patch"),
+            Label("//third_party/mesa:mesa.src_glx_meson.build.patch"),
+            # This patch is required for mesa to build on MacOS
+            Label("//third_party/mesa:mesa.src_gallium_frontends_dri_dri_util.c.patch"),
+        ],
+        sha256 = "670d8cbe8b72902a45ea2da68a9da4dc4a5d99c5953a926177adbce1b1640b76",
+        strip_prefix = "mesa-22.1.4",
+        url = "https://archive.mesa3d.org//third_party/mesa-22.1.4.tar.xz",
+    )
+
+    maybe(
+        http_archive,
+        name = "libdrm",
+        build_file = Label("//third_party/libdrm:BUILD.libdrm.bazel"),
+        sha256 = "00b07710bd09b35cd8d80eaf4f4497fe27f4becf467a9830f1f5e8324f8420ff",
+        strip_prefix = "libdrm-2.4.112",
+        url = "https://dri.freedesktop.org/libdrm/libdrm-2.4.112.tar.xz",
+    )
+    maybe(
+        http_archive,
+        name = "expat",
+        build_file = Label("//third_party/expat:BUILD.expat.bazel"),
+        sha256 = "a00ae8a6b96b63a3910ddc1100b1a7ef50dc26dceb65ced18ded31ab392f132b",
+        strip_prefix = "expat-2.4.1",
+        urls = [
+            "https://mirror.bazel.build/github.com/libexpat/libexpat/releases/download/R_2_4_1/expat-2.4.1.tar.gz",
+            "https://github.com/libexpat/libexpat/releases/download/R_2_4_1/expat-2.4.1.tar.gz",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "libpciaccess",
+        build_file = Label("//third_party/libpciaccess:BUILD.libpciaccess.bazel"),
+        sha256 = "84413553994aef0070cf420050aa5c0a51b1956b404920e21b81e96db6a61a27",
+        strip_prefix = "libpciaccess-0.16",
+        url = "https://www.x.org/archive//individual/lib/libpciaccess-0.16.tar.gz",
+    )
+
+    maybe(
+        http_archive,
+        name = "apr",
+        build_file = Label("//third_party/apr:BUILD.apr.bazel"),
+        patches = [
+            # https://bz.apache.org/bugzilla/show_bug.cgi?id=50146
+            Label("//third_party/apr:macos_iovec.patch"),
+            # https://bz.apache.org/bugzilla/show_bug.cgi?id=64753
+            Label("//third_party/apr:macos_pid_t.patch"),
+            # https://apachelounge.com/viewtopic.php?t=8260
+            Label("//third_party/apr:windows_winnt.patch"),
+        ],
+        sha256 = "48e9dbf45ae3fdc7b491259ffb6ccf7d63049ffacbc1c0977cced095e4c2d5a2",
+        strip_prefix = "apr-1.7.0",
+        urls = [
+            "https://mirror.bazel.build/www-eu.apache.org/dist/apr/apr-1.7.0.tar.gz",
+            "https://www-eu.apache.org/dist/apr/apr-1.7.0.tar.gz",
+        ],
+    )
+
+    autotools_repositories()
+    xorg_repositories()
+
+

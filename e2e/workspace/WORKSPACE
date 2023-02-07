@@ -8,10 +8,14 @@ load("@rules_qt//qt:repositories.bzl", "rules_qt_dependencies")
 
 rules_qt_dependencies(qt_version = "6.2.4")
 
-load("@rules_qt//qt:repositories_extra.bzl", "rules_qt_extra_dependencies")
+load("@rules_qt//qt:repositories2.bzl", "rules_qt_dependencies2")
 
-rules_qt_extra_dependencies()
+rules_qt_dependencies2()
 
-load("@rules_qt//qt:repositories_extra_extra.bzl", "rules_qt_extra_extra_dependencies")
+load("@rules_qt//qt:repositories3.bzl", "rules_qt_dependencies3")
 
-rules_qt_extra_extra_dependencies()
+rules_qt_dependencies3()
+
+load("@rules_qt//qt:repositories4.bzl", "rules_qt_dependencies4")
+
+rules_qt_dependencies4()

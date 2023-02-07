@@ -9,7 +9,7 @@ load("@rules_perl//perl:deps.bzl", "perl_register_toolchains", "perl_rules_depen
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
 
-def rules_qt_extra_dependencies():
+def rules_qt_dependencies2():
     python_register_toolchains(
         name = "python3_9",
         # Available versions are listed in @rules_python//python:versions.bzl.
