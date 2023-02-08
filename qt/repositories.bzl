@@ -227,6 +227,25 @@ def rules_qt_dependencies(qt_version):
         ],
     )
 
+    maybe(
+        http_archive,
+        name = "llvm",
+        build_file = Label("//third_party/llvm:BUILD.llvm.bazel"),
+        sha256 = "8b3cfd7bc695bd6cea0f37f53f0981f34f87496e79e2529874fd03a2f9dd3a8a",
+        strip_prefix = "llvm-project-14.0.6.src",
+        url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.6/llvm-project-14.0.6.src.tar.xz",
+    )
+
+    maybe(
+        http_archive,
+        name = "libelf",
+        build_file = Label("//third_party/libelf:BUILD.libelf.bazel"),
+        sha256 = "591a9b4ec81c1f2042a97aa60564e0cb79d041c52faa7416acb38bc95bd2c76d",
+        strip_prefix = "libelf-0.8.13",
+        url = "https://fossies.org/linux/misc/old/libelf-0.8.13.tar.gz",
+    )
+
+
     autotools_repositories()
     xorg_repositories()
 

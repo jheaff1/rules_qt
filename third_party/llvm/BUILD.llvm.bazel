@@ -1,0 +1,69 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "all",
+    srcs = glob(["**"]),
+)
+
+cmake(
+    name = "llvm",
+    cache_entries = {
+        "CMAKE_BUILD_TYPE": "Release",
+        # "LLVM_BUILD_TOOLS": "OFF",
+        # "LLVM_BUILD_UTILS": "OFF",
+        "LLVM_ENABLE_PROJECTS": "clang;clang-tools-extra",
+        "LLVM_INCLUDE_TESTS": "OFF",
+        # May need AMDGU for mesa?
+        "LLVM_TARGETS_TO_BUILD": "X86;AMDGPU",
+    },
+    generate_args = ["-GNinja"],
+    # Set to install to False otherwise all of LLVM will be built
+    install = False,
+    lib_source = ":all",
+    out_binaries = [
+        "clang-format",
+        "clang-tidy",
+        "llvm-config",
+    ],
+    # TODO remove
+    build_args=["-j4"],
+    out_data_dirs = ["lib"],  # required as clang-tidy needs the lib folder, which contains system includes like stddef.h
+    targets = [
+        # "install-clang-format-stripped",
+        # "install-clang-tidy-stripped",
+        # "install-clang-resource-headers-stripped",  # generate the lib folder in the installation directory, required by clang-tidy
+
+        # # For mesa. instead could just build everything with install-distribution-stripped (i think)
+        # "install-LLVMAMDGPUAsmParser-stripped",
+        # "install-LLVMBitReader-stripped",
+        # "install-LLVMBitWriter-stripped",
+        # "install-LLVMCore-stripped",
+        # "install-LLVMExecutionEngine-stripped",
+        # "install-LLVMInstCombine-stripped",
+        # "install-LLVMipo-stripped",
+        # "install-LLVMMCDisassembler-stripped",
+        # "install-LLVMMCJIT-stripped",
+        # "install-LLVMScalarOpts-stripped",
+        # "install-LLVMTransformUtils-stripped",
+        # "install-LLVMCoroutines-stripped",
+        "install/strip",
+        # "install-distribution-stripped"
+    ],
+    working_directory = "llvm",
+)
+
+# https://github.com/bazelbuild/rules_foreign_cc/blob/edbfa3bfa924d656f489428bdfec523d057be9bd/examples/cmake_hello_world_lib/binary/BUILD.bazel#L26
+# Seems like the way to get a binary as a standalone bazel target is using a filegroup
+filegroup(
+    name = "clang_format",
+    srcs = [":llvm"],
+    output_group = "clang-format",
+)
+
+filegroup(
+    name = "clang_tidy",
+    srcs = [":llvm"],
+    output_group = "clang-tidy",
+)

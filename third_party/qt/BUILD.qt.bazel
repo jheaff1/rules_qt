@@ -263,6 +263,9 @@ cmake(
             ":flex",
             ":bison",
     ],
+    cache_entries = {
+        "CMAKE_PREFIX_PATH": "$$EXT_BUILD_DEPS$$/mesa;$$EXT_BUILD_DEPS$$/openssl;$$EXT_BUILD_DEPS$$/zlib",
+    },
     env = {
         "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(PERL)):$$(dirname $$EXT_BUILD_ROOT$$/$(NODE_PATH)):$$(dirname $$EXT_BUILD_ROOT$$/$(location @python2//:python2_exe)):$$(dirname $$EXT_BUILD_ROOT$$/$(location @gperf//:gperf_exe)):$$(dirname $$EXT_BUILD_ROOT$$/$(location :flex)):$$(dirname $$EXT_BUILD_ROOT$$/$(location :bison)):$$PATH$$",
     },
@@ -293,7 +296,8 @@ cmake(
     ],
     deps = [
         "@mesa",
-        "@openssl"
+        "@openssl",
+        "@zlib"
     ]
 )
 

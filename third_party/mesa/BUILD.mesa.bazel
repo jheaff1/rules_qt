@@ -35,21 +35,22 @@ meson_with_requirements(
         "//conditions:default": {
             "BISON_PKGDATADIR": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/share/bison",
             "M4": "$$EXT_BUILD_ROOT$$/$(location @m4//:m4_exe)",
-            "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT$$/$(location @flex//:flex_exe)):$$EXT_BUILD_DEPS$$/bin/m4/bin/:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
+            # TODO use llvm built by bazel
+            # TODO instead of adding path to llvm-config to PATH, set the LLVM_CONFIG var, which is a special meson var as of august 2022
+            "PATH": "/home/jheaffey/llvm-install/bin:$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT$$/$(location @flex//:flex_exe)):$$EXT_BUILD_DEPS$$/bin/m4/bin/:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
+            # "CMAKE_PREFIX_PATH": "/home/jheaffey/llvm-install/lib/cmake/llvm",
         },
     }),
-    lib_source = ":all_srcs",
     options = select({
         "@platforms//os:linux": {
-            # Disable LLVM support, as building LLVM in rules_foreign_cc CI would drastically increase the build time
-            "gallium-drivers": "nouveau",
-            "glx": "disabled",
-            "llvm": "disabled",
+            "shared-llvm": "disabled",
+            # TODO remove this and add -DLLVM_ENABLE_RTTI=ON to llvm build
+            "cpp_rtti": "false", 
             "platforms": "x11",
-            "vulkan-drivers": "intel",
         },
         "//conditions:default": {},
     }),
+    lib_source = ":all_srcs",
     out_interface_libs = select({
         ":msvc_compiler": [
             "libgallium_wgl.lib",
@@ -96,6 +97,7 @@ meson_with_requirements(
             "@bison",
             "@expat",
             "@libdrm",
+            "@libelf",
             "@libpciaccess",
             "@libxau",
             "@libxcb",
@@ -104,6 +106,7 @@ meson_with_requirements(
             "@libxrandr",
             "@libxrender",
             "@libxshmfence",
+            "@libXxf86vm",
             "@libx11",
             "@xorgproto",
             "@zlib",

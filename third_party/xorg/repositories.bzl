@@ -129,3 +129,12 @@ def xorg_repositories():
         strip_prefix = "libXfixes-6.0.0",
         url = "https://www.x.org/archive//individual/lib/libXfixes-6.0.0.tar.gz",
     )
+
+    maybe(
+        http_archive,
+        name = "libXxf86vm",
+        build_file = Label("//third_party/xorg:BUILD.libXxf86vm.bazel"),
+        sha256 = "5108553c378a25688dcb57dca383664c36e293d60b1505815f67980ba9318a99",
+        strip_prefix = "libXxf86vm-1.1.4",
+        url = "https://www.x.org/releases/individual/lib/libXxf86vm-1.1.4.tar.gz",
+    )
