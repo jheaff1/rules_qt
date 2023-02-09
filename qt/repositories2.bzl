@@ -9,6 +9,9 @@ load("@rules_perl//perl:deps.bzl", "perl_register_toolchains", "perl_rules_depen
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
 
+
+# TODO have a boolean to register toolchains?
+
 def rules_qt_dependencies2():
 
 # Perhaps need to pass in a boolean as to whether to run this, as it may have been run already?

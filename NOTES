@@ -1,1 +1,3 @@
 resolve TODOs
+
+have requirements.txt in rules_qt repo, not e2e, and call the pip repo rules_qt_pip
