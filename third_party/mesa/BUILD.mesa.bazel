@@ -47,8 +47,6 @@ meson_with_requirements(
             # TODO remove this and add -DLLVM_ENABLE_RTTI=ON to llvm build
             "cpp_rtti": "false", 
             "platforms": "x11",
-            # TODO remove this so that amdgpu works
-            "vulkan-drivers": "intel",
         },
         "//conditions:default": {},
     }),
