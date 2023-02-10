@@ -30,6 +30,8 @@ meson_with_requirements(
             "@m4//:m4_exe",
         ],
     }),
+    # this prevents the output directory being "mesa_", as meson_with_requirements defines the target to build as "mesa_"
+    lib_name = "mesa",
     env = select({
         "@bazel_tools//src/conditions:host_windows": {
             "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @winflexbison//:gen_dir))/winflexbison:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
