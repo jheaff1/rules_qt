@@ -134,6 +134,7 @@ meson_with_requirements(
             "@libxcb",
             "@libxdmcp",
             "@libxext",
+            "@libxfixes",
             "@libxrandr",
             "@libxrender",
             "@libxshmfence",
