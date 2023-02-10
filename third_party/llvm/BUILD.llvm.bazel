@@ -1,3 +1,7 @@
+# working one manually is 
+#cmake -DCMAKE_BUILD_TYPE=Release '-DLLVM_ENABLE_PROJECTS=clang;clang-tools-extra' -DLLVM_INCLUDE_TESTS=OFF '-DLLVM_TARGETS_TO_BUILD=X86;AMDGPU'  -DCMAKE_INSTALL_PREFIX=/home/jheaffey/llvm-install  -G Ninja .. 
+# cmake --build . --config Release --target 'tools/llvm-config/install/strip' -j4
+
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 
 package(default_visibility = ["//visibility:public"])
@@ -6,6 +10,25 @@ filegroup(
     name = "all",
     srcs = glob(["**"]),
 )
+
+# genrule(
+#     name = "cxx_var",
+#     outs = ["cxx_var.sh"],
+#     cmd = """
+#         cat > $@ << EOF
+#             COMPILER=$$(basename \\$${CC})
+#             if [[ \\$${COMPILER} == *gcc ]]; then
+#                 CXX=\\$${COMPILER%gcc}g++
+#             elif [[ \\$${COMPILER} == clang ]]; then
+#                 CXX=\\$${COMPILER%clang}clang++
+#             else
+#                 CXX=\\$${CC}
+#             fi
+#             export CXX=c++
+#             export CC=cc
+# EOF
+#     """,
+# )
 
 cmake(
     name = "llvm",
@@ -17,18 +40,28 @@ cmake(
         "LLVM_INCLUDE_TESTS": "OFF",
         # May need AMDGU for mesa?
         "LLVM_TARGETS_TO_BUILD": "X86;AMDGPU",
+        # "CMAKE_SHARED_LINKER_FLAGS": "",
+        # "CMAKE_EXE_LINKER_FLAGS": "",
+        # "CMAKE_AR": "",
+        # "CMAKE_RANLIB": "",
+        # "CMAKE_PREFIX_PATH": "",
+
     },
+    #source $EXT_BUILD_ROOT/bazel-out/k8-opt-exec-2B5CBBC6/bin/external/llvm/cxx_var.sh && unset CFLAGS CXXFLAGS ASMFLAGS && $EXT_BUILD_ROOT/external/cmake-3.23.2-linux-x86_64/bin/cmake -DCMAKE_AR="/usr/bin/ar" -DCMAKE_SHARED_LINKER_FLAGS="-shared -lstdc++ -lm" -DCMAKE_EXE_LINKER_FLAGS="-lstdc++ -lm" -DCMAKE_BUILD_TYPE="Release" -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" -DLLVM_INCLUDE_TESTS="OFF" -DLLVM_TARGETS_TO_BUILD="X86;AMDGPU" -DCMAKE_INSTALL_PREFIX="$INSTALLDIR" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB="" -DCMAKE_MAKE_PROGRAM=$EXT_BUILD_ROOT/external/ninja_1.11.0_linux/ninja -G 'Ninja' $EXT_BUILD_ROOT/external/llvm/llvm
+    # build_data = [":cxx_var"],
     generate_args = ["-GNinja"],
+    generate_crosstool_file = False,
     # Set to install to False otherwise all of LLVM will be built
     install = False,
     lib_source = ":all",
     out_binaries = [
         "clang-format",
         "clang-tidy",
-        "llvm-config",
+        # "llvm-config",
     ],
     # TODO remove
     build_args=["-j4"],
+    tags = ["no-sandbox"],
     out_data_dirs = ["lib"],  # required as clang-tidy needs the lib folder, which contains system includes like stddef.h
     targets = [
         # "install-clang-format-stripped",
@@ -48,10 +81,16 @@ cmake(
         # "install-LLVMScalarOpts-stripped",
         # "install-LLVMTransformUtils-stripped",
         # "install-LLVMCoroutines-stripped",
+        #"tools/install/strip", # TODO shouldnt be necessary when doingn install/strip
+        # "tools/llvm-config/install",
         "install/strip",
         # "install-distribution-stripped"
     ],
     working_directory = "llvm",
+    # tool_prefix="source $$EXT_BUILD_ROOT$$/$(location :cxx_var) && unset CFLAGS CXXFLAGS ASMFLAGS &&",
+    # features = ["-default_link_flags"],
+    # postfix_script = "ls -l $$BUILD_TMPDIR$$/bin/llvm-config && $$BUILD_TMPDIR$$/bin/llvm-config --version && ls -l $$INSTALLDIR$$ && ls -l $$INSTALLDIR$$/bin && rm -f $$INSTALLDIR$$/bin/llvm-config && cp $$BUILD_TMPDIR$$/bin/llvm-config $$INSTALLDIR$$/bin && ls -l  $$INSTALLDIR$$/bin/llvm-config ",
+    # postfix_script = "$INSTALLDIR/bin/llvm-config && "
 )
 
 # https://github.com/bazelbuild/rules_foreign_cc/blob/edbfa3bfa924d656f489428bdfec523d057be9bd/examples/cmake_hello_world_lib/binary/BUILD.bazel#L26
@@ -67,3 +106,9 @@ filegroup(
     srcs = [":llvm"],
     output_group = "clang-tidy",
 )
+
+# filegroup(
+#     name = "llvm_config",
+#     srcs = [":llvm"],
+#     output_group = "llvm-config",
+# )

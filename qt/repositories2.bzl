@@ -28,6 +28,7 @@ def rules_qt_dependencies2():
     perl_rules_dependencies()
     perl_register_toolchains()
 
+    # TODO set register_built_pkgconfig_toolchain = True
     rules_foreign_cc_dependencies()
 
     build_bazel_rules_nodejs_dependencies()

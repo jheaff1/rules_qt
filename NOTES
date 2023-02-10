@@ -1,3 +1,8 @@
 resolve TODOs
 
 have requirements.txt in rules_qt repo, not e2e, and call the pip repo rules_qt_pip
+
+replacement of "-config" files breaks llvm-config, see https://github.com/bazelbuild/rules_foreign_cc/pull/109. commit bf2cb01
+llvm-config --ldflags will refer to an old sandbox. This was solved for libpng and freetype by replacing the -config file, but they were ascii scripts, not executables! could use it if no-sandbox for llvm build, but try mesa without llvm-config
+
+could try to change replace_in_files to only do so if "file <file>" result contains "ascii"
