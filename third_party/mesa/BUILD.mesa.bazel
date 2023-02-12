@@ -40,7 +40,7 @@ meson_with_requirements(
             "BISON_PKGDATADIR": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/share/bison",
             "M4": "$$EXT_BUILD_ROOT$$/$(location @m4//:m4_exe)",
             "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(location @bison//:gen_dir))/bison/bin:$$(dirname $$EXT_BUILD_ROOT$$/$(location @flex//:flex_exe)):$$EXT_BUILD_DEPS$$/bin/m4/bin/:$$(dirname $$EXT_BUILD_ROOT$$/$(PYTHON3)):$$PATH",
-            #"CMAKE_PREFIX_PATH": "$$EXT_BUILD_DEPS$$/llvm/lib/cmake/llvm",
+            "CMAKE_PREFIX_PATH": "$$EXT_BUILD_DEPS$$/llvm/lib/cmake/llvm",
         },
     }),
     options = select({
@@ -140,7 +140,7 @@ meson_with_requirements(
             "@libxshmfence",
             "@libXxf86vm",
             "@libx11",
-            #"@llvm",
+            "@llvm",
             "@xorgproto",
             "@zlib",
         ],
