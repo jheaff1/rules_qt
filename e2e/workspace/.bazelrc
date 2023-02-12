@@ -3,15 +3,3 @@
 #build --override_repository=rules_foreign_cc=/home/jheaffey/git/rules_foreign_cc
 
 
-build --action_env=SHELL
-build --action_env=LOGNAME
-build --action_env=MOTD_SHOWN
-build --action_env=HOME
-build --action_env=LANG
-build --action_env=USER
-build --action_env=DISPLAY
-build --action_env=SHLVL
-build --action_env=XDG_DATA_DIRS
-build --action_env=PATH
-build --action_env=HOSTTYPE
-
