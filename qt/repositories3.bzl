@@ -11,7 +11,7 @@ def rules_qt_dependencies3():
     )
 
     pip_parse(
-        name = "pip",
+        name = "rules_qt_pip",
         python_interpreter_target = py3_interpreter,
         requirements_lock = "//:requirements_lock.txt",
     )

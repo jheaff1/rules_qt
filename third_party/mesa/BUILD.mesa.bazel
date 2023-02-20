@@ -1,4 +1,4 @@
-load("@pip//:requirements.bzl", "requirement")
+load("@rules_qt_pip//:requirements.bzl", "requirement")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "meson_with_requirements")
 
 filegroup(

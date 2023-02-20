@@ -296,6 +296,7 @@ cmake(
         "@nodejs_toolchains//:resolved_toolchain"
     ],
     deps = [
+        # TODO this caused llvm rebuild even after building llvm for mesa. probably because meson_with_requirements transition affects deps. See if i can change it to be an incoming transition, not outgoing
         "@llvm",
         "@mesa",
         "@openssl",

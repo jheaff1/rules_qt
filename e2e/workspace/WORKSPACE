@@ -4,6 +4,12 @@ local_repository(
     path = "../..",
 )
 
+# (copied from https://github.com/tensorflow/tensorflow/blob/58e320bee974240b4193ffe7da7bc1cc1c43a551/WORKSPACE#L5)
+# The cascade of load() statements and rules_qt_dependencies?() calls works around the
+# restriction that load() statements need to be at the top of .bzl files.
+# E.g. we can not retrieve a new repository with http_archive and then load()
+# a macro from that repository in the same file.
+
 load("@rules_qt//qt:repositories.bzl", "rules_qt_dependencies")
 
 rules_qt_dependencies(qt_version = "6.2.4")

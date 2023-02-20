@@ -60,8 +60,8 @@ cmake(
         # "llvm-config",
     ],
     # TODO remove
-    build_args=["-j4"],
-    tags = ["no-sandbox"],
+    build_args=["-j6"],
+    # tags = ["no-sandbox"],
     out_data_dirs = ["lib"],  # required as clang-tidy needs the lib folder, which contains system includes like stddef.h
     targets = [
         # "install-clang-format-stripped",
