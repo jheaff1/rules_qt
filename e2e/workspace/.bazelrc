@@ -1,0 +1,5 @@
+#build --noincompatible_enable_cc_toolchain_resolution
+#build --override_repository=mesa=/home/jheaffey/git/mesa
+#build --override_repository=rules_foreign_cc=/home/jheaffey/git/rules_foreign_cc
+
+

@@ -1,0 +1,362 @@
+# Seems that perl is no longer required to build qt - https://www.qt.io/blog/perl-is-out-of-the-list-of-dependencies
+
+
+
+load("@rules_cc//cc:defs.bzl", "cc_import")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake",)
+
+package( default_visibility = ["//visibility:public"])
+
+# TODO - if i need to use python in my rules_qt repo, register hermetic toolchain in repository rule and like rules_foreign_cc, wrap it in a "register_toolchains" boolean which is true by default
+
+BINARIES = [
+    "androiddeployqt",
+    "androidtestrunner",
+    "assistant",
+    "balsam",
+    "balsamui",
+    "canbusutil",
+    "cmake_automoc_parser",
+    "designer",
+    "instancer",
+    "lconvert",
+    "linguist",
+    "lprodump",
+    "lrelease",
+    "lrelease-pro",
+    "lupdate",
+    "lupdate-pro",
+    "meshdebug",
+    "moc",
+    "pixeltool",
+    "qdbus",
+    "qdbuscpp2xml",
+    "qdbusviewer",
+    "qdbusxml2cpp",
+    "qdistancefieldgenerator",
+    "qhelpgenerator",
+    "qlalr",
+    "qmake",
+    "qmake6",
+    "qml",
+    "qmlcachegen",
+    "qmldom",
+    "qmleasing",
+    "qmlformat",
+    "qmlimportscanner",
+    "qmllint",
+    "qmlplugindump",
+    "qmlpreview",
+    "qmlprofiler",
+    "qmlscene",
+    "qmltestrunner",
+    "qmltime",
+    "qmltyperegistrar",
+    "qsb",
+    "qscxmlc",
+    "qtattributionsscanner",
+    "qtdiag",
+    "qtdiag6",
+    "qtpaths",
+    "qtpaths6",
+    "qtplugininfo",
+    "qvkgen",
+    "rcc",
+    "repc",
+    "shadergen",
+    "tracegen",
+    "uic",
+]
+
+EXTRA_WIN_BINARIES = [
+    "dumpcpp",
+    "dumpdoc",
+    "idc",
+    "testcon",
+    "windeployqt",
+]
+
+# TODO link with individual libs. May need to have filegroup for each lib which includes the includes. Look ok rules foreign cc issues for linking libs individually
+# TODO add QtPdf and QtWebEngine or whatever they are called. Basically run the build again and get new list of libs
+LIBS = [
+    "Qt63DAnimation",
+    "Qt63DCore",
+    "Qt63DExtras",
+    "Qt63DInput",
+    "Qt63DLogic",
+    "Qt63DQuick",
+    "Qt63DQuickAnimation",
+    "Qt63DQuickExtras",
+    "Qt63DQuickInput",
+    "Qt63DQuickRender",
+    "Qt63DQuickScene2D",
+    "Qt63DRender",
+    "Qt6Bluetooth",
+    "Qt6Bodymovin",
+    "Qt6Charts",
+    "Qt6ChartsQml",
+    "Qt6Coap",
+    "Qt6Concurrent",
+    "Qt6Core",
+    "Qt6Core5Compat",
+    "Qt6DataVisualization",
+    "Qt6DBus",
+    "Qt6Designer",
+    "Qt6DesignerComponents",
+    "Qt6Gui",
+    "Qt6Help",
+    "Qt6LabsAnimation",
+    "Qt6LabsFolderListModel",
+    "Qt6LabsQmlModels",
+    "Qt6LabsSettings",
+    "Qt6LabsSharedImage",
+    "Qt6LabsWavefrontMesh",
+    "Qt6Mqtt",
+    "Qt6Multimedia",
+    "Qt6MultimediaQuick",
+    "Qt6MultimediaWidgets",
+    "Qt6Network",
+    "Qt6NetworkAuth",
+    "Qt6Nfc",
+    "Qt6OpcUa",
+    "Qt6OpenGL",
+    "Qt6OpenGLWidgets",
+    "Qt6Positioning",
+    "Qt6PositioningQuick",
+    "Qt6PrintSupport",
+    "Qt6Qml",
+    "Qt6QmlCore",
+    "Qt6QmlLocalStorage",
+    "Qt6QmlModels",
+    "Qt6QmlWorkerScript",
+    "Qt6QmlXmlListModel",
+    "Qt6Quick",
+    "Qt6Quick3D",
+    "Qt6Quick3DAssetImport",
+    "Qt6Quick3DAssetUtils",
+    "Qt6Quick3DEffects",
+    "Qt6Quick3DHelpers",
+    "Qt6Quick3DIblBaker",
+    "Qt6Quick3DParticles",
+    "Qt6Quick3DRuntimeRender",
+    "Qt6Quick3DUtils",
+    "Qt6QuickControls2",
+    "Qt6QuickControls2Impl",
+    "Qt6QuickDialogs2",
+    "Qt6QuickDialogs2QuickImpl",
+    "Qt6QuickDialogs2Utils",
+    "Qt6QuickLayouts",
+    "Qt6QuickParticles",
+    "Qt6QuickShapes",
+    "Qt6QuickTemplates2",
+    "Qt6QuickTest",
+    "Qt6QuickTimeline",
+    "Qt6QuickWidgets",
+    "Qt6RemoteObjects",
+    "Qt6RemoteObjectsQml",
+    "Qt6Scxml",
+    "Qt6ScxmlQml",
+    "Qt6Sensors",
+    "Qt6SensorsQuick",
+    "Qt6SerialBus",
+    "Qt6SerialPort",
+    "Qt6ShaderTools",
+    "Qt6Sql",
+    "Qt6StateMachine",
+    "Qt6StateMachineQml",
+    "Qt6Svg",
+    "Qt6SvgWidgets",
+    "Qt6Test",
+    "Qt6UiTools",
+    "Qt6VirtualKeyboard",
+    "Qt6WebChannel",
+    "Qt6WebSockets",
+    "Qt6WebView",
+    "Qt6WebViewQuick",
+    "Qt6Widgets",
+    "Qt6Xml",
+]
+
+config_setting(
+    name = "android",
+    constraint_values = [
+        "@platforms//os:android",
+        "@platforms//cpu:arm",
+    ],
+)
+
+# Bazel does not distinguish between C and C++ compilers. Therefore, rules_foreign_cc sets the CXX environment variable to the same as CC, causing the build of qt to fail
+# This genrule creates a txt file which when "sourced" will set CXX.
+# TODO fix indentation of CXX=\\$${CC} below
+genrule(
+    name = "cxx_var",
+    outs = ["cxx_var.sh"],
+    cmd = """
+        cat > $@ << EOF
+            COMPILER=$$(basename \\$${CC})
+            if [[ \\$${COMPILER} == *gcc ]]; then
+                CXX=\\$${COMPILER%gcc}g++
+            elif [[ \\$${COMPILER} == clang ]]; then
+                CXX=\\$${COMPILER%clang}clang++
+            else
+                CXX=\\$${CC}
+            fi
+            export CXX
+EOF
+    """,
+)
+
+# Paths must be given in Windows style (.e.g C:/ rather than /c) when building on Qt on Windows
+genrule(
+    name = "realpath",
+    outs = ["realpath.sh"],
+    cmd = """
+        cat > $@ << EOF
+            if [[ \\$$(uname) == *"NT"* ]]; then
+                cygpath -m \\$$1
+            else
+                realpath \\$$1
+            fi
+EOF
+    """,
+    executable = True,
+)
+
+[
+    alias(
+        name = tool,
+        actual = select({
+            "@bazel_tools//src/conditions:host_windows": "@winflexbison//:{}_exe".format(tool),
+            "//conditions:default": "@{}//:{}_exe".format(tool, tool),
+        }),
+    )
+    for tool in [
+        "flex",
+        "bison",
+    ]
+]
+
+filegroup(
+    name = "qt_install_dir",
+    srcs = [":qt"],
+    # gen_dir output group is provided by the cmake() rule
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"])
+)
+
+TOOL_PREFIX = "source $$EXT_BUILD_ROOT$$/$(location :cxx_var) && unset CFLAGS CXXFLAGS ASMFLAGS &&"
+
+# have to add "link_libraries(stdc++ m)" to top of top level CMakeLists. wrap "if compiler is clang or gcc" around it
+cmake(
+    name = "qt",
+    # $EXT_BUILD_ROOT/external/cmake-3.22.1-windows-x86_64/bin/cmake.exe -DCMAKE_AR="C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/HostX64/x64/lib.exe" -DCMAKE_CXX_LINK_EXECUTABLE="C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/HostX64/x64/link.exe <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>" -DCMAKE_SHARED_LINKER_FLAGS="-nologo -DLL -SUBSYSTEM:CONSOLE -MACHINE:X64 -DEFAULTLIB:msvcrt.lib" -DCMAKE_EXE_LINKER_FLAGS="-nologo -SUBSYSTEM:CONSOLE -MACHINE:X64 -DEFAULTLIB:msvcrt.lib" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX="$INSTALLDIR" -DCMAKE_PREFIX_PATH="$EXT_BUILD_DEPS" -DCMAKE_RANLIB="" -DCMAKE_MAKE_PROGRAM=$EXT_BUILD_ROOT/external/ninja_1.10.2_win/ninja.exe -G 'Ninja' $EXT_BUILD_ROOT/external/qt
+    build_args = ["--parallel 6"],
+    build_data = [
+            ":cxx_var",
+            "@gperf//:gperf_exe",
+            "@python2//:python2_exe",
+            ":flex",
+            ":bison",
+    ],
+    cache_entries = {
+        # underscore required after "mesa" as the dir generated by meson_with_requirements appends an underscore
+        "CMAKE_PREFIX_PATH": "$$EXT_BUILD_DEPS$$/llvm/lib/cmake/llvm;$$EXT_BUILD_DEPS$$/mesa;$$EXT_BUILD_DEPS$$/openssl;$$EXT_BUILD_DEPS$$/zlib",
+    },
+    env = {
+        "PATH": "$$(dirname $$EXT_BUILD_ROOT$$/$(PERL)):$$(dirname $$EXT_BUILD_ROOT$$/$(NODE_PATH)):$$(dirname $$EXT_BUILD_ROOT$$/$(location @python2//:python2_exe)):$$(dirname $$EXT_BUILD_ROOT$$/$(location @gperf//:gperf_exe)):$$(dirname $$EXT_BUILD_ROOT$$/$(location :flex)):$$(dirname $$EXT_BUILD_ROOT$$/$(location :bison)):$$PATH$$",
+    },
+    # Need to remove "-O2" from command line otherwise cmake step fails. As rules_foreign_cc will set CMAKE_BUILD_TYPE to Release, optimisation will be enabled that way
+    features = [
+        # "-default_link_flags",
+        #"-opt",
+        #"-dbg", # to prevent debug build of qt
+        #Use this once my PR in bazel is merged instead of setting flags to blank above
+        #"-default_compile_flags",
+        #"-dynamic_link_msvcrt_no_debug
+    ],
+    generate_args = ["-GNinja"],
+    generate_crosstool_file = False,
+
+   
+    lib_source = ":all_srcs",
+    out_binaries = BINARIES,
+    postfix_script = "cp -p $$INSTALLDIR$$/libexec/* $$INSTALLDIR$$/bin",
+    # The Qt CMake build attempts to archive a file, which fails if the file is a symlink (i.e inside the bazel sandbox where all files are symlinks). As such, this target cannot be sandboxed
+    tags = ["no-sandbox"],
+    # TODO remove my patch for qt and have a genrule that makes a sh file that exports CXX=/path/to/dir/of/gcc/g++, same for clang++
+    tool_prefix = TOOL_PREFIX,
+    toolchains = [ 
+        "@rules_perl//:current_toolchain",
+        "@rules_python//python:current_py_toolchain",
+        "@nodejs_toolchains//:resolved_toolchain"
+    ],
+    deps = [
+        # TODO this caused llvm rebuild even after building llvm for mesa. probably because meson_with_requirements transition affects deps. See if i can change it to be an incoming transition, not outgoing
+        "@llvm",
+        "@mesa",
+        "@openssl",
+        "@zlib"
+    ]
+)
+
+filegroup(
+    name = "qt_include_dir",
+    srcs = [":qt"],
+    output_group = "include",
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "qt_gen_dir",
+    srcs = [":qt"],
+    output_group = "gen_dir",
+    visibility = ["//visibility:public"],
+)
+
+[
+    filegroup(
+        name = bin,
+        srcs = [":qt"],
+        # Extract individual binaries using output_group set by rules_foreign_cc
+        output_group = bin,
+        visibility = ["//visibility:public"],
+    )
+    for bin in BINARIES
+]
+
+# how to get all binaries, including extra windows ones? for linux, the output group would be nonexistent, so that may be ok.
+# or have BINARIES and EXTRA_WIN_BINARIES, but how to iterate over extra ones only on windows? for extra ones, could have alias which results in None for non linux
+
+# The following rules are required to provide Qt libs individually. A cc_library or cc_binary rule that depends on the cmake() rule directly will depend on ALL qt libraries
+# If https://github.com/bazelbuild/bazel/issues/4748 were resolved, only a cc_import instance would be required. Until then , the workaround is to create a cc_library with dependency cc_import
+[
+    (
+        genrule(
+            name = "{}_shared_lib".format(lib),
+            srcs = [":qt_gen_dir"],
+            outs = ["lib{}.so.6".format(lib)],
+            cmd = "cp $(location :qt_gen_dir)/lib/lib{}.so $@".format(lib),
+        ),
+        cc_import(
+            name = "{}_import".format(lib),
+            shared_library = ":{}_shared_lib".format(lib),
+        ),
+        cc_library(
+            name = "{}".format(lib),
+            deps = [
+                "{}_import".format(lib),
+                ":qt",
+            ] +
+            # Assume that all Qt libs depend on Qt6Core
+            [
+                ":Qt6Core_import",
+            ] if (lib != "Qt6Core") else [],
+        ),
+    )
+    for lib in LIBS
+]

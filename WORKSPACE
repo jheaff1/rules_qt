@@ -11,7 +11,7 @@ rules_qt_internal_deps()
 load("//qt:repositories.bzl", "rules_qt_dependencies")
 
 # Fetch dependencies which users need as well
-rules_qt_dependencies()
+rules_qt_dependencies(qt_version = "6.2.4")
 
 # For running our own unit tests
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")

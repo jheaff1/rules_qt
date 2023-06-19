@@ -1,0 +1,13 @@
+---
+tasks:
+  ubuntu2004:
+    name: Ubuntu 20.04
+    platform: ubuntu2004
+    working_directory: e2e/workspace
+    test_targets:
+      - "//..."
+
+buildifier:
+  version: "6.1.0"
+  # keep this argument in sync with .pre-commit-config.yaml
+  warnings: "all"
